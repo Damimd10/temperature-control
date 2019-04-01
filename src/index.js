@@ -15,32 +15,26 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from 'recharts';
-import { InputNumber, Slider, Layout, Row, Col } from 'antd';
+import { Layout } from 'antd';
 
-const marks = {
-  0: '0°C',
-  20: '20°C',
-  40: '40°C',
-  60: '60°C',
-  80: '80°C',
-  100: {
-    style: {
-      color: '#f50',
-    },
-    label: <strong>100°C</strong>,
-  },
-};
+import FormControl from './components/FormControl';
 
 const createIntervalSampleArray = (size, sampleInterval) =>
   [...Array(size)].map((_, i) => i * sampleInterval);
 
 const calculateK = (dt, tou) => dt / tou;
 
-const calculateTemperature = (sampleArray, K, minTemp, maxTemp) =>
-  sampleArray.map(dt => ({
-    temperature: (maxTemp + Math.exp(-(K * dt)) * (minTemp - maxTemp)).toFixed(2),
+const calculateTemperature = (mode, sampleArray, K, minTemp, maxTemp) => {
+  const formula = {
+    heat: dt => (maxTemp + Math.exp(-(K * dt)) * (minTemp - maxTemp)).toFixed(2),
+    cold: dt => (minTemp + Math.exp(-(K * dt)) * (maxTemp - minTemp)).toFixed(2),
+  };
+
+  return sampleArray.map(dt => ({
+    temperature: formula[mode](dt),
     minute: dt,
   }));
+};
 
 const App = () => {
   const [tou, setTou] = React.useState(20);
@@ -49,39 +43,29 @@ const App = () => {
   const [temperatureRange, setTemperatureRange] = React.useState([0, 100]);
   const [refTemperature, setRefTemperature] = React.useState(50);
   const [minTemperature, maxTemperature] = temperatureRange;
+  const [mode, setMode] = React.useState('heat');
 
   const k = calculateK(1, tou);
   const sampleArray = createIntervalSampleArray(sampleNumber, sampleInterval);
 
-  const data = calculateTemperature(sampleArray, k, ...temperatureRange);
+  const data = calculateTemperature(mode, sampleArray, k, ...temperatureRange);
 
   return (
     <React.Fragment>
       <Layout>
         <Layout.Header style={{ height: '150px', backgroundColor: '#fdfdfd' }}>
-          <Row type="flex" justify="space-around" align="center">
-            <Col>
-              <span className="label-form">Tou (minutes)</span>
-              <InputNumber min={1} max={50} defaultValue={20} onChange={setTou} />
-            </Col>
-            <Col>
-              <span className="label-form">Sampling Interval</span>
-              <InputNumber min={1} max={60} defaultValue={1} onChange={setSampleInterval} />
-            </Col>
-            <Col>
-              <span className="label-form">Sample Number</span>
-              <InputNumber min={1} defaultValue={sampleNumber} onChange={setSampleNumber} />
-            </Col>
-            <Col>
-              <span className="label-form">Reference Temperature</span>
-              <InputNumber min={1} defaultValue={refTemperature} onChange={setRefTemperature} />
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <Slider range marks={marks} defaultValue={[0, 100]} onChange={setTemperatureRange} />
-            </Col>
-          </Row>
+          <FormControl
+            setTou={setTou}
+            setSampleNumber={setSampleNumber}
+            sampleNumber={sampleNumber}
+            sampleInterval={sampleInterval}
+            setSampleInterval={setSampleInterval}
+            setTemperatureRange={setTemperatureRange}
+            refTemperature={refTemperature}
+            setRefTemperature={setRefTemperature}
+            mode={mode}
+            setMode={setMode}
+          />
         </Layout.Header>
         <Layout.Content>
           <ResponsiveContainer width="100%" aspect={4.0}>
