@@ -9,28 +9,62 @@ const createIntervalSampleArray = (size, sampleInterval) =>
 
 const calculateK = (dt, tou) => dt / tou;
 
-const calculateTemperature = (
-  minHysteresis,
-  maxHysteresis,
-  mode,
-  sampleArray,
-  K,
-  minTemp,
-  maxTemp,
-) => {
+const calculateTemperature = (mode, sampleArray, K, minTemp, maxTemp) => {
   const formula = {
     heat: dt => (maxTemp + Math.exp(-(K * dt)) * (minTemp - maxTemp)).toFixed(2),
     cold: dt => (minTemp + Math.exp(-(K * dt)) * (maxTemp - minTemp)).toFixed(2),
-    hysteresis: dt => 0,
   };
 
-  // DOWN = (0 + Math.exp(-(0.05 * 1)) * (65 - 0)).toFixed(2) = 61.83
-  // (minTemp + Math.exp(-(K * dt)) * (maxHysteresis - minTemp)).toFixed(2),
-
-  // UP = (100 + Math.exp(-(0.05 * 1)) * (0 - 65)).toFixed(2)
-  // (maxTemp + Math.exp(-(K * dt)) * (minTemperature - maxHysteresis)).toFixed(2)
-
   return sampleArray.map(dt => ({ temperature: formula[mode](dt), minute: dt }));
+};
+
+const calculateWithHysteresis = (
+  minHysteresis,
+  maxHysteresis,
+  sampleArray,
+  k,
+  minTemperature,
+  maxTemperature,
+) => {
+  let i = 0;
+  let j = 0;
+  let x = 0;
+  let result = [];
+
+  let heat = true;
+
+  const formula = {
+    heat: dt =>
+      (maxTemperature + Math.exp(-(k * dt)) * (minTemperature - maxHysteresis)).toFixed(2),
+    cold: dt =>
+      (minTemperature + Math.exp(-(k * dt)) * (maxHysteresis - minTemperature)).toFixed(2),
+  };
+
+  while (i < 120) {
+    if (heat) {
+      const temperature = formula['heat'](x);
+      result.push({ temperature, minute: sampleArray[i] });
+      x++;
+      if (temperature > maxHysteresis) {
+        heat = false;
+        x = 0;
+      }
+    }
+
+    if (!heat) {
+      const temperature = formula['cold'](j);
+      result.push({ temperature, minute: sampleArray[i] });
+      j++;
+      if (temperature < minHysteresis) {
+        heat = true;
+        j = 0;
+      }
+    }
+
+    i++;
+  }
+
+  return result;
 };
 
 const Home = () => {
@@ -46,15 +80,21 @@ const Home = () => {
 
   const k = calculateK(1, tou);
   const sampleArray = createIntervalSampleArray(sampleNumber, sampleInterval);
+  let data;
 
-  const data = calculateTemperature(
-    minHysteresis,
-    maxHysteresis,
-    mode,
-    sampleArray,
-    k,
-    ...temperatureRange,
-  );
+  if (mode === 'hysteresis') {
+    data = calculateWithHysteresis(
+      minHysteresis,
+      maxHysteresis,
+      sampleArray,
+      k,
+      ...temperatureRange,
+    );
+  } else {
+    data = calculateTemperature(mode, sampleArray, k, ...temperatureRange);
+  }
+
+  console.log('HERE', data);
 
   return (
     <Fragment>
