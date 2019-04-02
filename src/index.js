@@ -24,16 +24,28 @@ const createIntervalSampleArray = (size, sampleInterval) =>
 
 const calculateK = (dt, tou) => dt / tou;
 
-const calculateTemperature = (mode, sampleArray, K, minTemp, maxTemp) => {
+const calculateTemperature = (
+  minHysteresis,
+  maxHysteresis,
+  mode,
+  sampleArray,
+  K,
+  minTemp,
+  maxTemp,
+) => {
   const formula = {
     heat: dt => (maxTemp + Math.exp(-(K * dt)) * (minTemp - maxTemp)).toFixed(2),
     cold: dt => (minTemp + Math.exp(-(K * dt)) * (maxTemp - minTemp)).toFixed(2),
+    hysteresis: dt => 0,
   };
 
-  return sampleArray.map(dt => ({
-    temperature: formula[mode](dt),
-    minute: dt,
-  }));
+  // DOWN = (0 + Math.exp(-(0.05 * 1)) * (65 - 0)).toFixed(2) = 61.83
+  // (minTemp + Math.exp(-(K * dt)) * (maxHysteresis - minTemp)).toFixed(2),
+
+  // UP = (100 + Math.exp(-(0.05 * 1)) * (0 - 65)).toFixed(2)
+  // (maxTemp + Math.exp(-(K * dt)) * (minTemperature - maxHysteresis)).toFixed(2)
+
+  return sampleArray.map(dt => ({ temperature: formula[mode](dt), minute: dt }));
 };
 
 const App = () => {
@@ -44,27 +56,40 @@ const App = () => {
   const [refTemperature, setRefTemperature] = React.useState(50);
   const [minTemperature, maxTemperature] = temperatureRange;
   const [mode, setMode] = React.useState('heat');
+  const [minHysteresis, setMinHysteresis] = React.useState(35);
+  const [maxHysteresis, setMaxHysteresis] = React.useState(65);
 
   const k = calculateK(1, tou);
   const sampleArray = createIntervalSampleArray(sampleNumber, sampleInterval);
 
-  const data = calculateTemperature(mode, sampleArray, k, ...temperatureRange);
+  const data = calculateTemperature(
+    minHysteresis,
+    maxHysteresis,
+    mode,
+    sampleArray,
+    k,
+    ...temperatureRange,
+  );
 
   return (
     <React.Fragment>
       <Layout>
-        <Layout.Header style={{ height: '150px', backgroundColor: '#fdfdfd' }}>
+        <Layout.Header style={{ height: '180px', backgroundColor: '#fdfdfd' }}>
           <FormControl
-            setTou={setTou}
-            setSampleNumber={setSampleNumber}
-            sampleNumber={sampleNumber}
-            sampleInterval={sampleInterval}
-            setSampleInterval={setSampleInterval}
-            setTemperatureRange={setTemperatureRange}
-            refTemperature={refTemperature}
-            setRefTemperature={setRefTemperature}
+            maxHysteresis={maxHysteresis}
+            minHysteresis={minHysteresis}
             mode={mode}
+            refTemperature={refTemperature}
+            sampleInterval={sampleInterval}
+            sampleNumber={sampleNumber}
+            setMaxHysteresis={setMaxHysteresis}
+            setMinHysteresis={setMinHysteresis}
             setMode={setMode}
+            setRefTemperature={setRefTemperature}
+            setSampleInterval={setSampleInterval}
+            setSampleNumber={setSampleNumber}
+            setTemperatureRange={setTemperatureRange}
+            setTou={setTou}
           />
         </Layout.Header>
         <Layout.Content>

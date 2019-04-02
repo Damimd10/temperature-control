@@ -16,16 +16,20 @@ const marks = {
 };
 
 const FormControl = ({
-  setTou,
-  setSampleNumber,
-  sampleNumber,
-  sampleInterval,
-  setSampleInterval,
-  setTemperatureRange,
-  refTemperature,
-  setRefTemperature,
+  maxHysteresis,
+  minHysteresis,
   mode,
+  refTemperature,
+  sampleInterval,
+  sampleNumber,
+  setMaxHysteresis,
+  setMinHysteresis,
   setMode,
+  setRefTemperature,
+  setSampleInterval,
+  setSampleNumber,
+  setTemperatureRange,
+  setTou,
 }) => {
   return (
     <Fragment>
@@ -55,6 +59,18 @@ const FormControl = ({
           <span className="label-form">Reference Temperature</span>
           <InputNumber min={1} defaultValue={refTemperature} onChange={setRefTemperature} />
         </Col>
+        {mode === 'hysteresis' && (
+          <React.Fragment>
+            <Col>
+              <span className="label-form">Max Hysteresis</span>
+              <InputNumber min={1} defaultValue={minHysteresis} onChange={setMaxHysteresis} />
+            </Col>
+            <Col>
+              <span className="label-form">Max Hysteresis</span>
+              <InputNumber min={1} defaultValue={maxHysteresis} onChange={setMinHysteresis} />
+            </Col>
+          </React.Fragment>
+        )}
       </Row>
       <Row>
         <Col>
