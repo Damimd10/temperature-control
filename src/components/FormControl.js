@@ -63,11 +63,11 @@ const FormControl = ({
           <React.Fragment>
             <Col>
               <span className="label-form">Min Hysteresis</span>
-              <InputNumber min={1} defaultValue={35} onChange={setMinHysteresis} />
+              <InputNumber min={1} defaultValue={minHysteresis} onChange={setMinHysteresis} />
             </Col>
             <Col>
               <span className="label-form">Max Hysteresis</span>
-              <InputNumber min={1} defaultValue={65} onChange={setMaxHysteresis} />
+              <InputNumber min={1} defaultValue={maxHysteresis} onChange={setMaxHysteresis} />
             </Col>
           </React.Fragment>
         )}

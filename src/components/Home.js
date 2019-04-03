@@ -40,7 +40,7 @@ const calculateWithHysteresis = (
       (minTemperature + Math.exp(-(k * dt)) * (maxHysteresis - minTemperature)).toFixed(2),
   };
 
-  while (i < 120) {
+  while (i < sampleArray.length) {
     if (heat) {
       const temperature = formula['heat'](x);
       result.push({ temperature, minute: sampleArray[i] });
